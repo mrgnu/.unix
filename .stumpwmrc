@@ -1,0 +1,112 @@
+;;; -*- mode: Lisp; -*-
+
+(in-package :stumpwm)
+
+;;; Load additional functionality
+
+;; prefix key
+(set-prefix-key (kbd "F20"))
+
+; swank. *prefix-key* ; swank will kick this off
+;(load "/usr/share/emacs/site-lisp/slime/swank-loader.lisp")
+;(swank-loader:init)
+;(defcommand swank () ()
+;  (setf stumpwm:*top-level-error-action* :break)
+;  (swank:create-server :port 4005
+;                       :style swank:*communication-style*
+;                       :dont-close t)
+;  (echo-string (current-screen)
+;			          "Starting swank. M-x slime-connect RET RET, then (in-package stumpwm)."))
+
+; mpd
+(load-module "mpd")
+
+
+;;; custom functions
+
+;; undefine and define root key
+(defun redefine-key (key command)
+  (let ((kbmap *root-map*))
+	(progn
+	  (undefine-key kbmap (kbd key))
+	  (define-key   kbmap (kbd key) command))))
+
+;; concatenate strings
+(defun concat (&rest args)
+  (apply #'concatenate 'string args))
+
+;; paste from X clipboard
+(defcommand paste-x-selection () (:rest)
+  "Universal rat-less X paste."
+  (let ((cmd (concat "insert " (get-x-selection))))
+	(run-commands cmd)))
+
+;; change keyboard layout
+(defun change-kb-layout (layout)
+  (progn
+    (echo-string (current-screen) (concat "loading " layout " keyboard layout"))
+    (run-shell-command (concat "setxkbmap " layout " && xmodmap /home/wonko/.Xmodmap"))))
+(defcommand set-swedish-kb () (:rest)
+  "changes keyboard layout to swedish"
+  (change-kb-layout "se"))
+(defcommand set-us-kb () (:rest)
+  "changes keyboard layout to us"
+  (change-kb-layout "us -variant altgr-intl"))
+
+;; lock screen
+(defcommand lock-screen () (:rest)
+  "lock screen via xscreensaver."
+  (run-shell-command "/usr/bin/xscreensaver-command --lock"))
+
+;; sleep
+(defcommand suspend-to-ram () (:rest)
+  "suspend to RAM"
+  (run-shell-command "sudo pm-suspend"))
+
+
+
+;;; customize
+
+(set-us-kb)
+(setf *mouse-focus-policy* :click) ;; :click, :ignore, :sloppy
+(mpd-connect) ; connect to mpd
+
+
+
+;;; custom key bindings
+
+;; top map - standalone
+(define-key *top-map* (kbd "XF86PowerOff") "suspend-to-ram")
+
+;; root map - with prefix
+(redefine-key "p"    "paste-x-selection")
+(redefine-key "r"    "run-shell-command")
+(redefine-key "l"    "lock-screen")
+(redefine-key "L"    "redisplay")
+(redefine-key "R"    "iresize")
+(redefine-key "C-s"  "set-swedish-kb")
+(redefine-key "C-u"  "set-us-kb")
+(redefine-key "Up"   "gprev")
+(redefine-key "Down" "gnext")
+
+;; mpd map
+(export '(*my-mpd-map*))
+(defvar *my-mpd-map* nil)
+(fill-keymap *my-mpd-map*
+             (kbd "1")   "rate-song 1"
+             (kbd "2")   "rate-song 2"
+             (kbd "3")   "rate-song 3"
+             (kbd "4")   "rate-song 4"
+             (kbd "5")   "rate-song 5"
+             (kbd "SPC") "mpd-toggle-pause"
+             (kbd "c")   "mpd-clear"
+             (kbd "p")   "mpd-prev"
+             (kbd "n")   "mpd-next"
+             (kbd "s")   "mpd-current-song"
+             (kbd "l")   "mpd-browse-playlist"
+             (kbd "<")   "mpd-volume-down"
+             (kbd ",")   "mpd-volume-down"
+             (kbd ">")   "mpd-volume-up"
+             (kbd ".")   "mpd-volume-up")
+(redefine-key "m" *my-mpd-map*)
+(redefine-key "M" "lastmsg")
