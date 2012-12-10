@@ -26,6 +26,8 @@
 	("marmalade" . "http://marmalade-repo.org/packages/")
 	("melpa" . "http://melpa.milkbox.net/packages/")))
 
+; w3m
+(setq w3m-home-page "http://w3m.sourceforge.net/MANUAL")
 
 ;;; load libraries
 
