@@ -20,11 +20,11 @@
 (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
 (setq scroll-step 1) ;; keyboard scroll one line at a time
 
-; auto-install
-(setq auto-install-directory "~/.emacs.d/auto-install/")
-(add-to-list 'load-path (expand-file-name auto-install-directory))
-(require 'auto-install)
-
+; ELPA
+(setq package-archives
+      '(("gnu" . "http://elpa.gnu.org/packages/")
+	("marmalade" . "http://marmalade-repo.org/packages/")
+	("melpa" . "http://melpa.milkbox.net/packages/")))
 
 
 ;;; load libraries
